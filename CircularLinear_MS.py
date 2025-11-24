@@ -6,10 +6,6 @@ This implementation follows the methodology described in:
 Cheng, Y. (1995). "Mean Shift, Mode Seeking, and Clustering"
 IEEE Transactions on Pattern Analysis and Machine Intelligence
 
-Adapted for circular-linear data where:
-- theta (angle) is in [0, 2*pi] with circular reasoning
-- radius r is in (-inf, +inf) with linear reasning
-
 Author: Osama Al Sheikh Ali
 Date: November 2025
 """
@@ -29,7 +25,7 @@ class MeanShiftCircularLinear:
     
     The algorithm iteratively shifts each data point to the weighted mean
     of points in its neighborhood, where the neighborhood is defined by
-    a kernel function. For circular-linear data, we use a product kernel
+    a kernel function. For circular-linear data, I use a product kernel
     that combines a von Mises kernel for the circular component (theta)
     and a Gaussian kernel for the linear component (r).
     """
