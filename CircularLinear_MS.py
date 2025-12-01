@@ -162,7 +162,6 @@ class MeanShiftCircularLinear:
     
 
 
-
     # -------------------------
     # Mode mergig and clustering
     # -------------------------
@@ -255,32 +254,38 @@ class MeanShiftCircularLinear:
 
   
 
-    def _mean_shift_full_clustering(self, point_modes: np.ndarray, merged_modes: np.ndarray):
-        """Assign each point to its nearest merged mode using normalized distance."""
-        #TODO better docstring
+    # Mode mergig and clustering
+    # -------------------------
+    def _mean_shift_modes(self, start_point: np.ndarray, data: np.ndarray) -> Tuple[np.ndarray, int]:
+        """
+        Find mode by iteratively applying mean shift until convergence.
+        Starting from a given point, repeatedly shift toward higher density
+        regions until we reach maximum iteration number or we reached convergence (shift is less than the tolerance)
 
+        This function returns the converged mode location  [theta, r]
+        """
+        point = start_point
+        iteration_count = 0
 
-        labels = np.zeros(len(point_modes), dtype=int)
+        #loop over the max amount of iterations allowed if we dont reach the steady mode
+        for iteration in range(self.max_iter): 
+            # Perform mean shift step
+            new_point = self._mean_shift_step(point, data)
 
-        for i, mode in enumerate(point_modes):
-            min_mode_idx = 0
-            least_dist = float('inf')
+            # Compute shift magnitude
+            theta_shift = self._circ_dist(new_point[0], point[0])
+            r_shift = np.abs(new_point[1] - point[1])
 
-            for j, m in enumerate(merged_modes):
-                # Normalize each dimension by its bandwidth
-                theta_dist_norm = self._circ_dist(mode[0], m[0]) / self.bandwidth_theta
-                r_dist_norm = abs(mode[1] - m[1]) / self.bandwidth_r
-                
-                
-                d = np.sqrt(theta_dist_norm**2 + r_dist_norm**2) #Logic: Both are without dimensions so it safe to combine thme
+            #Check if we reached the tolerance level then we dont have to keep doing anything else
+            shift_magnitude = np.sqrt((theta_shift/self.bandwidth_theta)**2 + (r_shift/self.bandwidth_r)**2)
+            point = new_point
+            iteration_count = iteration + 1
 
-                if d < least_dist:
-                    least_dist = d
-                    min_mode_idx = j
+            # Check convergence
+            if shift_magnitude < self.tol:
+                break
 
-            labels[i] = min_mode_idx
-
-        return labels
+        return point, iteration_count
 
 
 
